@@ -1,5 +1,5 @@
 #!/bin/bash
-
+COUNT=10
 TEST_KUBE=0
 TEST_DOCKER=0
 if [[ "$1" == "kube" ]]; then
@@ -20,7 +20,7 @@ clearJobs() {
 }
 
 batch() {
-  for i in {1..1000}; do eval $1 $i; done
+  for i in {1..$COUNT}; do eval $1 $i; done
 }
 
 # Docker utilities
@@ -101,11 +101,11 @@ fillKubernetesTo() {
 # measurement functions
 
 dockerBatchRun() {
-  for i in {1..1000}; do echo Running $i; { time -p nc -l -p 4444 $TESTER_IP ; } 2>&1 >/dev/null | sed -n '/real/p' | awk '{ print $2 }' & docker  run --name single-$i --entrypoint /bin/sh alpine -c "echo '' | nc $TESTER_IP 4444" &>/dev/null & wait ; done
+  for i in {1..$COUNT}; do echo Running $i; { time -p nc -l -p 4444 $TESTER_IP ; } 2>&1 >/dev/null | sed -n '/real/p' | awk '{ print $2 }' & docker  run --name single-$i --entrypoint /bin/sh alpine -c "echo '' | nc $TESTER_IP 4444" &>/dev/null & wait ; done
 }
 
 kubeBatchRun() {
-  for i in {1..1000}; do echo Running $i; { time -p nc -l -p 4444 $TESTER_IP ; } 2>&1 >/dev/null | sed -n '/real/p' | awk '{ print $2 }' & kubectl  run single-$i --restart Never --image alpine -- sh -c "echo '' | nc $TESTER_IP 4444" &>/dev/null & wait ; done
+  for i in {1..$COUNT}; do echo Running $i; { time -p nc -l -p 4444 $TESTER_IP ; } 2>&1 >/dev/null | sed -n '/real/p' | awk '{ print $2 }' & kubectl  run single-$i --restart Never --image alpine -- sh -c "echo '' | nc $TESTER_IP 4444" &>/dev/null & wait ; done
 }
 
 timedBatch() {
@@ -122,7 +122,7 @@ test() {
     echo Starting run test
     kubeBatchRun >> /results/kube-run-$1.raw
     echo Starting list test
-    timedBatch 1 10 "kubeList" >> ./kube-list-$1.raw
+    timedBatch 1 $COUNT "kubeList" >> ./raw/kube-list-$1.raw
     echo Clearning up Exited containers
     batch "deletePod"
   else
@@ -130,7 +130,7 @@ test() {
     echo Starting run test
     dockerBatchRun >> /results/swarm-run-$1.raw
     echo Starting list test
-    timedBatch 1 10 "dockerList" >> ./swarm-list-$1.raw
+    timedBatch 1 $count "dockerList" >> ./raw/swarm-list-$1.raw
     echo Cleaning up Exited containers
     batch "deleteContainer single"
   fi
