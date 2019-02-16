@@ -11,7 +11,7 @@ fi
 # <APISERVERDNS> should be replaced at cluster creation time with the ELB in front of the Kube API servers
 PAUSE_IMAGE="gcr.io/google_containers/pause:go"
 # The Swarm manager will always start at this IP address
-TESTER_IP=10.0.0.40
+TESTER_IP="localhost"
 
 # General utilities
 
@@ -26,15 +26,15 @@ batch() {
 # Docker utilities
 
 dockerList() {
-  docker -H $DOCKER_HOST ps
+  docker  ps
 }
 
 deleteContainer() {
-  docker -H $DOCKER_HOST rm -f $1-$2
+  docker  rm -f $1-$2
 }
 
 runContainer() {
-  docker -H $DOCKER_HOST run -d --name $1-$2 alpine sleep 86400
+  docker  run -d --name $1-$2 alpine sleep 86400
 }
 
 DOCKER_SCALE=0
@@ -101,7 +101,7 @@ fillKubernetesTo() {
 # measurement functions
 
 dockerBatchRun() {
-  for i in {1..1000}; do echo Running $i; { time -p nc -l -p 4444 $TESTER_IP ; } 2>&1 >/dev/null | sed -n '/real/p' | awk '{ print $2 }' & docker -H $DOCKER_HOST run --name single-$i --entrypoint /bin/sh alpine -c "echo '' | nc $TESTER_IP 4444" &>/dev/null & wait ; done
+  for i in {1..1000}; do echo Running $i; { time -p nc -l -p 4444 $TESTER_IP ; } 2>&1 >/dev/null | sed -n '/real/p' | awk '{ print $2 }' & docker  run --name single-$i --entrypoint /bin/sh alpine -c "echo '' | nc $TESTER_IP 4444" &>/dev/null & wait ; done
 }
 
 kubeBatchRun() {
@@ -122,7 +122,7 @@ test() {
     echo Starting run test
     kubeBatchRun >> /results/kube-run-$1.raw
     echo Starting list test
-    timedBatch 1 1000 "kubeList" >> /results/kube-list-$1.raw
+    timedBatch 1 10 "kubeList" >> ./kube-list-$1.raw
     echo Clearning up Exited containers
     batch "deletePod"
   else
@@ -130,7 +130,7 @@ test() {
     echo Starting run test
     dockerBatchRun >> /results/swarm-run-$1.raw
     echo Starting list test
-    timedBatch 1 1000 "dockerList" >> /results/swarm-list-$1.raw
+    timedBatch 1 10 "dockerList" >> ./swarm-list-$1.raw
     echo Cleaning up Exited containers
     batch "deleteContainer single"
   fi
