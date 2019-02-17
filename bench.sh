@@ -1,6 +1,6 @@
 #!/bin/bash
-COUNT=2
-SCALE=5
+COUNT=10
+SCALE=50
 RESULTS="./raw"
 TEST_KUBE=0
 TEST_DOCKER=0
@@ -43,10 +43,10 @@ DOCKER_SCALE=0
 fillDockerTo() {
   TARGET=$1
   if [ "$TARGET" -gt "$DOCKER_SCALE" ]; then 
-    echo Scaling Up $SCALE to $TARGET
+    echo Scaling Up $DOCKER_SCALE to $TARGET
     for (( i=$DOCKER_SCALE ; i<$TARGET; i++)); do runContainer 'scale' $i; done
   else
-    echo Scaling Down $TARGET to $SCALE
+    echo Scaling Down $TARGET to $DOCKER_SCALE
     for (( i=(($DOCKER_SCALE-1)) ; i>=$TARGET; i--)); do deleteContainer 'scale' $i; done
   fi
   DOCKER_SCALE=$1
