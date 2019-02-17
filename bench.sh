@@ -1,5 +1,6 @@
 #!/bin/bash
-COUNT=1000
+COUNT=2
+SCALE=5
 RESULTS="./raw"
 TEST_KUBE=0
 TEST_DOCKER=0
@@ -113,6 +114,12 @@ timedBatch() {
   for (( i=$1 ; i<$2; i++)); do { time -p eval $3 ; } 2>&1 >/dev/null | sed -n '/real/p' | awk '{ print $2 }'; done
 }
 
+#formating
+
+scaleToPercent(){
+  awk "BEGIN {printf \"%.0f\n\",$SCALE*$1};"
+}
+
 ################################
 # Test Harness
 ################################
@@ -137,17 +144,19 @@ test() {
   fi
 }
 
-echo Test at 10%
-test 50
 
-echo Test at 50%
-test 250
 
-echo Test at 90%
-test 450
+echo Test at 10% = $(scaleToPercent .1)
+test $(scaleToPercent .1)
 
-echo Test at 99%
-test 490
+echo Test at 50% = $(scaleToPercent .5)
+test $(scaleToPercent .5)
 
-echo Test at 100%
-test 500
+echo Test at 90% = $(scaleToPercent .9)
+test $(scaleToPercent .9)
+
+echo Test at 99% = $(scaleToPercent .99)
+test $(scaleToPercent .99)
+
+echo Test at 100% = $SCALE
+test $SCALE
