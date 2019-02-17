@@ -1,6 +1,6 @@
 #!/bin/bash
-COUNT=10
-SCALE=50
+COUNT=100
+SCALE=500
 RESULTS="./raw"
 TEST_KUBE=0
 TEST_DOCKER=0
@@ -146,17 +146,17 @@ test() {
 
 
 
-echo Test at 10% = $(scaleToPercent .1)
+echo Test at 10% 
 test $(scaleToPercent .1)
 
-echo Test at 50% = $(scaleToPercent .5)
+echo Test at 50% 
 test $(scaleToPercent .5)
 
-echo Test at 90% = $(scaleToPercent .9)
+echo Test at 90% 
 test $(scaleToPercent .9)
 
-echo Test at 99% = $(scaleToPercent .99)
+echo Test at 99% 
 test $(scaleToPercent .99)
 
-echo Test at 100% = $SCALE
+echo Test at 100% 
 test $SCALE
