@@ -121,7 +121,7 @@ test() {
   if [[ "$TEST_KUBE" -eq 1 ]]; then
     fillKubernetesTo $1
     echo Starting run test
-    kubeBatchRun >> $RESULTS/kube-run-$1.raw
+    kubeBatchRun > $RESULTS/kube-run-$1.raw
     echo Starting list test
     timedBatch 1 $COUNT "kubeList" > $RESULTS/kube-list-$1.raw
     echo Clearning up Exited containers
@@ -129,7 +129,7 @@ test() {
   else
     fillDockerTo $1
     echo Starting run test
-    dockerBatchRun >> $RESULTS/swarm-run-$1.raw
+    dockerBatchRun > $RESULTS/swarm-run-$1.raw
     echo Starting list test
     timedBatch 1 $COUNT "dockerList" > $RESULTS/swarm-list-$1.raw
     echo Cleaning up Exited containers
