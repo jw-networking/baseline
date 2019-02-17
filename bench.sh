@@ -59,7 +59,7 @@ kubeList() {
 }
 
 deletePod() {
-  kubectl  delete job single-$1
+  kubectl  delete pod single-$1
 }
 
 getRunningCount() {
