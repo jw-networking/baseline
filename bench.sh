@@ -103,11 +103,11 @@ fillKubernetesTo() {
 # measurement functions
 
 dockerBatchRun() {
-  for i in $(seq 1 1 $COUNT); do echo Running $i; { time -p nc -l -p 4444 $TESTER_IP ; } 2>&1 >/dev/null | sed -n '/real/p' | awk '{ print $2 }' & docker  run --name single-$i --entrypoint /bin/sh alpine -c "echo '' | nc $TESTER_IP 4444" 2>&1 >/dev/null & wait ; done
+  for i in $(seq 1 1 $COUNT); do { time -p nc -l -p 4444 $TESTER_IP ; } 2>&1 >/dev/null | sed -n '/real/p' | awk '{ print $2 }' & docker  run --name single-$i --entrypoint /bin/sh alpine -c "echo '' | nc $TESTER_IP 4444" 2>&1 >/dev/null & wait ; done
 }
 
 kubeBatchRun() {
-  for i in $(seq 1 1 $COUNT); do echo Running $i; { time -p nc -l -p 4444 $TESTER_IP ; } 2>&1 >/dev/null | sed -n '/real/p' | awk '{ print $2 }' & kubectl  run single-$i --restart Never --image alpine -- sh -c "echo '' | nc $TESTER_IP 4444" &>/dev/null & wait ; done
+  for i in $(seq 1 1 $COUNT); do { time -p nc -l -p 4444 $TESTER_IP ; } 2>&1 >/dev/null | sed -n '/real/p' | awk '{ print $2 }' & kubectl  run single-$i --restart Never --image alpine -- sh -c "echo '' | nc $TESTER_IP 4444" &>/dev/null & wait ; done
 }
 
 timedBatch() {
