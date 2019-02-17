@@ -1,6 +1,6 @@
 #!/bin/bash
 COUNT=20
-SCALE=500
+SCALE=60
 RESULTS="./raw"
 TEST_KUBE=0
 TEST_DOCKER=0
@@ -91,10 +91,10 @@ joinDispatch() {
 RC_CREATED=0
 fillKubernetesTo() {
   if [ $RC_CREATED -eq 0 ]; then
-    kubectl  run stresser --image $PAUSE_IMAGE --replicas=$1
+    kubectl run stresser --image $PAUSE_IMAGE --replicas=$1
     RC_CREATED=1
   else
-    kubectl  scale --replicas=$1 rc stresser
+    kubectl  scale --replicas=$1 deployment/stresser
   fi
   echo Waiting for pods to start.
   joinDispatch $1
