@@ -144,8 +144,6 @@ test() {
   fi
 }
 
-
-
 echo Test at 10% 
 test $(scaleToPercent .1)
 
