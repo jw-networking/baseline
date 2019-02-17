@@ -1,5 +1,6 @@
 #!/bin/bash
-COUNT=10
+COUNT=1000
+RESULTS="./raw"
 TEST_KUBE=0
 TEST_DOCKER=0
 if [[ "$1" == "kube" ]]; then
@@ -11,7 +12,7 @@ fi
 # <APISERVERDNS> should be replaced at cluster creation time with the ELB in front of the Kube API servers
 PAUSE_IMAGE="gcr.io/google_containers/pause:go"
 # The Swarm manager will always start at this IP address
-TESTER_IP="localhost"
+TESTER_IP=$(ip a | egrep 'inet.*eth0$' | awk '{print $2};' | awk -F / '{print $1};')
 
 # General utilities
 
@@ -120,33 +121,33 @@ test() {
   if [[ "$TEST_KUBE" -eq 1 ]]; then
     fillKubernetesTo $1
     echo Starting run test
-    kubeBatchRun >> /results/kube-run-$1.raw
+    kubeBatchRun >> $RESULTS/kube-run-$1.raw
     echo Starting list test
-    timedBatch 1 $COUNT "kubeList" >> ./raw/kube-list-$1.raw
+    timedBatch 1 $COUNT "kubeList" > $RESULTS/kube-list-$1.raw
     echo Clearning up Exited containers
     batch "deletePod"
   else
     fillDockerTo $1
     echo Starting run test
-    dockerBatchRun >> /results/swarm-run-$1.raw
+    dockerBatchRun >> $RESULTS/swarm-run-$1.raw
     echo Starting list test
-    timedBatch 1 $count "dockerList" >> ./raw/swarm-list-$1.raw
+    timedBatch 1 $COUNT "dockerList" > $RESULTS/swarm-list-$1.raw
     echo Cleaning up Exited containers
     batch "deleteContainer single"
   fi
 }
 
 echo Test at 10%
-test 3
+test 50
 
 echo Test at 50%
-test 15
+test 250
 
 echo Test at 90%
-test 27
+test 450
 
 echo Test at 99%
-test 29
+test 490
 
 echo Test at 100%
-test 30
+test 500
