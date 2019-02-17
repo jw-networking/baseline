@@ -1,5 +1,5 @@
 #!/bin/bash
-COUNT=100
+COUNT=1000
 SCALE=500
 RESULTS="./raw"
 TEST_KUBE=0
