@@ -1,5 +1,8 @@
 #!/bin/bash
+
+#number of repititions per test
 COUNT=20
+#max number of containers to be tested
 SCALE=60
 RESULTS="./raw"
 TEST_KUBE=0
@@ -44,10 +47,14 @@ getReplicas() {
 }
 
 waitToFill() {
-  while [[ $(getReplicas) < $1 ]] 
+  live=$(getReplicas)
+  while [[ $live != $1 ]] 
   do
+   echo $live of $1 running
    sleep 5
+   live=$(getReplicas)
   done
+  echo scaled
 }
 
 DOCKER_SCALE=0
@@ -64,13 +71,14 @@ DOCKER_SCALE=0
 #}
 
 fillDockerTo() {
-  echo Scaling Up $DOCKER_SCALE to $1
   if [ $DOCKER_SCALE -eq 0 ]; then
+    echo creating service $1 
     docker service create --name scale --replicas $1 alpine sleep 86400
   else
-    docker scale scale=$1
+    echo Scaling Up $DOCKER_SCALE to $1
+    docker service scale scale=$1
   fi
-  waitToFill
+  waitToFill $1
   DOCKER_SCALE=$1
 }
 
