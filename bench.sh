@@ -32,7 +32,7 @@ dockerList() {
 }
 
 deleteContainer() {
-  docker  rm -f $1-$2
+  docker service rm $1-$2
 }
 
 #runContainer() {
@@ -125,7 +125,15 @@ fillKubernetesTo() {
 # measurement functions
 
 dockerBatchRun() {
-  for i in $(seq 1 1 $COUNT); do { time -p nc -l -p 4444 $TESTER_IP ; } 2>&1 >/dev/null | sed -n '/real/p' | awk '{ print $2 }' & docker service create --replicas 1  --name single-$i alpine -c "echo '' | nc $TESTER_IP 4444" 2>&1 >/dev/null & wait ; done
+  for i in $(seq 1 1 $COUNT)
+  do 
+    { time -p nc -lp 4444;} 2>&1 >/dev/null |grep real |awk '{print $2}'& \
+    docker service create \
+      --name single-$i \
+      alpine \
+      /bin/sh -c "echo '' |nc $TESTER_IP 4444" 2>&1 >/dev/null & \
+    wait
+  done
 }
 
 kubeBatchRun() {
