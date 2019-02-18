@@ -35,16 +35,17 @@ deleteContainer() {
   docker  rm -f $1-$2
 }
 
-runContainer() {
-  docker  run -d --name $1-$2 alpine sleep 86400
-}
+#runContainer() {
+#  docker  run -d --name $1-$2 alpine sleep 86400
+#}
 
 getReplicas() {
   docker service ls  | grep scale | awk '{split($4,a,"/"); print a[1]};'
 }
 
 waitToFill() {
-  while [$(getReplicas) -lt $1 ]; do
+  while [[ $(getReplicas) < $1 ]] 
+  do
    sleep 5
   done
 }
@@ -63,15 +64,14 @@ DOCKER_SCALE=0
 #}
 
 fillDockerTo() {
-  echo Scaling Up $DOCKER_SCALE to $TARGET
+  echo Scaling Up $DOCKER_SCALE to $1
   if [ $DOCKER_SCALE -eq 0 ]; then
     docker service create --name scale --replicas $1 alpine sleep 86400
-    echo Scal
   else
     docker scale scale=$1
   fi
   waitToFill
-  $DOCKER_SCALE=$1
+  DOCKER_SCALE=$1
 }
 
 # Kubernetes utilities
@@ -125,7 +125,7 @@ fillKubernetesTo() {
 # measurement functions
 
 dockerBatchRun() {
-  for i in $(seq 1 1 $COUNT); do { time -p nc -l -p 4444 ; } 2>&1 >/dev/null | sed -n '/real/p' | awk '{ print $2 }' & docker service create --replicas 1  --name single-$i --entrypoint /bin/sh alpine -c "echo '' | nc $TESTER_IP 4444" 2>&1 >/dev/null & wait ; done
+  for i in $(seq 1 1 $COUNT); do { time -p nc -l -p 4444 $TESTER_IP ; } 2>&1 >/dev/null | sed -n '/real/p' | awk '{ print $2 }' & docker service create --replicas 1  --name single-$i alpine -c "echo '' | nc $TESTER_IP 4444" 2>&1 >/dev/null & wait ; done
 }
 
 kubeBatchRun() {
