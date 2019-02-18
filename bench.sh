@@ -1,9 +1,9 @@
 #!/bin/bash
 
 #number of repititions per test
-COUNT=20
+COUNT=100
 #max number of containers to be tested
-SCALE=60
+SCALE=500
 RESULTS="./raw"
 TEST_KUBE=0
 TEST_DOCKER=0
