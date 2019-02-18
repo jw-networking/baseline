@@ -189,3 +189,22 @@ test $(scaleToPercent .99)
 
 echo Test at 100% 
 test $SCALE
+
+#########################
+#generate averages
+#########################
+
+average(){
+  cat $1 | awk '{total+=$1;count++} END {print total/count};'
+}
+
+setExtention(){
+  echo "${1%.*}"$2
+}
+
+for i in $(ls $RESULTS/) 
+do
+  filename=$(setExtention $i .avg)
+  avg=$(average $RESULTS/$i)
+  echo $avg > $RESULTS/$filename
+done
