@@ -28,7 +28,7 @@ batch() {
 # Docker utilities
 
 dockerList() {
-  docker  ps
+  docker service ls
 }
 
 deleteContainer() {
@@ -39,17 +39,39 @@ runContainer() {
   docker  run -d --name $1-$2 alpine sleep 86400
 }
 
+getReplicas() {
+  docker service ls  | grep scale | awk '{split($4,a,"/"); print a[1]};'
+}
+
+waitToFill() {
+  while [$(getReplicas) -lt $1 ]; do
+   sleep 5
+  done
+}
+
 DOCKER_SCALE=0
+#fillDockerTo() {
+#  TARGET=$1
+#  if [ "$TARGET" -gt "$DOCKER_SCALE" ]; then 
+#    echo Scaling Up $DOCKER_SCALE to $TARGET
+#    for (( i=$DOCKER_SCALE ; i<$TARGET; i++)); do runContainer 'scale' $i; done
+#  else
+#    echo Scaling Down $TARGET to $DOCKER_SCALE
+#    for (( i=(($DOCKER_SCALE-1)) ; i>=$TARGET; i--)); do deleteContainer 'scale' $i; done
+#  fi
+#  DOCKER_SCALE=$1
+#}
+
 fillDockerTo() {
-  TARGET=$1
-  if [ "$TARGET" -gt "$DOCKER_SCALE" ]; then 
-    echo Scaling Up $DOCKER_SCALE to $TARGET
-    for (( i=$DOCKER_SCALE ; i<$TARGET; i++)); do runContainer 'scale' $i; done
+  echo Scaling Up $DOCKER_SCALE to $TARGET
+  if [ $DOCKER_SCALE -eq 0 ]; then
+    docker service create --name scale --replicas $1 alpine sleep 86400
+    echo Scal
   else
-    echo Scaling Down $TARGET to $DOCKER_SCALE
-    for (( i=(($DOCKER_SCALE-1)) ; i>=$TARGET; i--)); do deleteContainer 'scale' $i; done
+    docker scale scale=$1
   fi
-  DOCKER_SCALE=$1
+  waitToFill
+  $DOCKER_SCALE=$1
 }
 
 # Kubernetes utilities
@@ -103,7 +125,7 @@ fillKubernetesTo() {
 # measurement functions
 
 dockerBatchRun() {
-  for i in $(seq 1 1 $COUNT); do { time -p nc -l -p 4444 $TESTER_IP ; } 2>&1 >/dev/null | sed -n '/real/p' | awk '{ print $2 }' & docker  run --name single-$i --entrypoint /bin/sh alpine -c "echo '' | nc $TESTER_IP 4444" 2>&1 >/dev/null & wait ; done
+  for i in $(seq 1 1 $COUNT); do { time -p nc -l -p 4444 ; } 2>&1 >/dev/null | sed -n '/real/p' | awk '{ print $2 }' & docker service create --replicas 1  --name single-$i --entrypoint /bin/sh alpine -c "echo '' | nc $TESTER_IP 4444" 2>&1 >/dev/null & wait ; done
 }
 
 kubeBatchRun() {
