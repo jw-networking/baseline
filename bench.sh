@@ -7,13 +7,10 @@ SCALE=500
 RESULTS="./raw"
 TEST_KUBE=0
 TEST_DOCKER=0
-TEST_MESOS=0
 if [[ "$1" == "kube" ]]; then
   TEST_KUBE=1
 elif [[ "$1" == "swarm" ]];then
   TEST_DOCKER=1
-elif [[ "$1" == "mesos" ]];then
-  TEST_MESOS=1
 else
   (>&2 echo "no frame work provided")
   exit 1
