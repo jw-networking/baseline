@@ -11,6 +11,9 @@ class service:
 	def __init__(self,appID,manifest):
 		self.appID=appID
 		self.manifest=manifest
+	
+	def __str__(self):
+		return self.appID
 
 
 ##############################
