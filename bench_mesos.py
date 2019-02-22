@@ -5,6 +5,15 @@ import sys
 import os
 
 ##############################
+#data types
+##############################
+class service:
+	def __init__(self,appID,manifest=None):
+		self.appID=appID
+		self.manifest=manifest
+
+
+##############################
 #vars
 ##############################
 resultsPath="./results"
@@ -12,8 +21,8 @@ jsonPath="./mesos"
 containerCounts=[5,10,20]
 iterations=10
 apiURI="http://master1.mesos/v2/apps"
-scaleID="scale"
-tempID="temp"
+scale=service("scale",open(jsonPath+"/scale.json").read())
+ncBack=service("ncBack",open(jsonPath+"/ncBack.json").read())
 
 ##############################
 #functions
@@ -37,6 +46,7 @@ def batchList(runs):
 if(not os.path.isdir(resultsPath)):
 	os.mkdir(resultsPath)
 
+createService(scaleID)
 
 ##############################
 #main test loop
@@ -57,3 +67,4 @@ for count in containerCounts:
 #cleanup
 ##############################
 
+removeService(scaleID)
