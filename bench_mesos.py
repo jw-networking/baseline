@@ -8,7 +8,7 @@ import os
 #data types
 ##############################
 class service:
-	def __init__(self,appID,manifest=None):
+	def __init__(self,appID,manifest):
 		self.appID=appID
 		self.manifest=manifest
 
@@ -27,17 +27,22 @@ ncBack=service("ncBack",open(jsonPath+"/ncBack.json").read())
 ##############################
 #functions
 ##############################
-def fillTo(appID,count):
-	print("fill "+appID+" to "+str(count))
+def fillTo(app,count):
+	print("fill "+app.appID+" to "+str(count))
 
-def batchRun(runs):
-	print("batch run")
+def batchRun(runs,svc):
+	print("batch run",svc)
 	return "batchrun"
 
 def batchList(runs):
 	print("batch list")
 	return "batchList"
 
+def deployService(svc):
+	print("deploying",svc)
+
+def destroyService(svc):
+	print("destroying",svc)
 
 ##############################
 #prep
@@ -46,18 +51,18 @@ def batchList(runs):
 if(not os.path.isdir(resultsPath)):
 	os.mkdir(resultsPath)
 
-createService(scaleID)
+deployService(scale)
 
 ##############################
 #main test loop
 ##############################
 
 for count in containerCounts:
-	fillTo(scaleID,count)
+	fillTo(scale,count)
 
 	print("Starting run test")
 	results=open(resultsPath+"/mesos-run-"+str(count)+".raw","w")
-	results.write(batchRun(iterations))
+	results.write(batchRun(iterations,ncBack))
 
 	print("Starting list test")
 	results=open(resultsPath+"/mesos-list-"+str(count)+".raw","w")
@@ -67,4 +72,4 @@ for count in containerCounts:
 #cleanup
 ##############################
 
-removeService(scaleID)
+destroyService(scale)
