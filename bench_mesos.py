@@ -10,12 +10,13 @@ import socket
 #data types
 ##############################
 class service:
-	def __init__(self,appID,manifest):
-		self.appID=appID
+	def __init__(self,manifest):
 		self.manifest=manifest
+		self.appID=json.loads(self.manifest)["id"]
 	
 	def __str__(self):
 		return self.appID
+	
 
 
 ##############################
@@ -47,7 +48,7 @@ def getIP():
 def httpCheck(cmd,destination,json=None):
 	response=cmd(destination,data=json)
 	status=response.status_code
-	if status<200 or status>300:
+	if status<200 or status>=300:
 		print(response)
 		exit(status)
 	return response
@@ -73,6 +74,7 @@ def deployService(svc):
 
 def destroyService(svc):
 	print("destroying",svc)
+	httpCheck(requests.delete,apiURI+svc.appID)
 
 
 ##############################
@@ -86,8 +88,8 @@ ncBackJSON=json.loads(open(jsonPath+"/ncBack.json").read())
 ncBackJSON["cmd"]='echo ""| nc '+getIP()+" "+str(ncPort)
 scaleJSON=json.loads(open(jsonPath+"/scale.json").read())
 
-scale=service("scale",json.dumps(scaleJSON))
-ncBack=service("ncBack",json.dumps(ncBackJSON))
+scale=service(json.dumps(scaleJSON))
+ncBack=service(json.dumps(ncBackJSON))
 
 deployService(scale)
 
