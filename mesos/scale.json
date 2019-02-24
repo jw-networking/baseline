@@ -1,0 +1,24 @@
+{
+  "id": "/scale",
+  "cmd": "sleep 86400",
+  "cpus": 0.02,
+  "mem": 32,
+  "disk": 0,
+  "instances": 1,
+  "container": {
+    "type": "DOCKER",
+    "docker": {
+      "forcePullImage": false,
+      "image": "alpine",
+      "parameters": [],
+      "privileged": false
+    },
+    "volumes": []
+  },
+  "portDefinitions": [
+    {
+      "port": 10000,
+      "protocol": "tcp"
+    }
+  ]
+}

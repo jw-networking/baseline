@@ -3,6 +3,7 @@ import requests
 import json
 import sys
 import os
+import re
 
 ##############################
 #data types
@@ -23,9 +24,9 @@ resultsPath="./results"
 jsonPath="./mesos"
 containerCounts=[5,10,20]
 iterations=10
-apiURI="http://master1.mesos/v2/apps"
-scale=service("scale",open(jsonPath+"/scale.json").read())
-ncBack=service("ncBack",open(jsonPath+"/ncBack.json").read())
+apiURI="http://master1.mesos:8080/v2/apps"
+scale=service("scale",open(jsonPath+"/scale.json").read().replace("\n",""))
+ncBack=service("ncBack",open(jsonPath+"/ncBack.json").read().replace("\n",""))
 
 ##############################
 #functions
@@ -43,6 +44,7 @@ def batchList(runs):
 
 def deployService(svc):
 	print("deploying",svc)
+	
 
 def destroyService(svc):
 	print("destroying",svc)
