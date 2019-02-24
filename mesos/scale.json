@@ -1,7 +1,7 @@
 {
   "id": "/scale",
   "cmd": "sleep 86400",
-  "cpus": 0.02,
+  "cpus": 0.01,
   "mem": 32,
   "disk": 0,
   "instances": 1,
