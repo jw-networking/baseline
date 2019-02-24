@@ -5,6 +5,7 @@ import sys
 import os
 import re
 import socket
+import time
 
 ##############################
 #data types
@@ -52,13 +53,28 @@ def httpCheck(cmd,destination,json=None):
 		print(response)
 		exit(status)
 	return response
-	
 
+def getScale(svc):
+	resp=httpCheck(requests.get,apiURI+svc.appID)
+	return json.loads(resp.text)["app"]["tasksRunning"]
+
+def waitTillScaled(svc,count):
+	scale=getScale(svc)
+	while scale != count:
+		print("running =",scale)
+		time.sleep(5)
+		scale=getScale(svc)
+		
 ##
 #main loop
 
-def fillTo(app,count):
-	print("fill "+app.appID+" to "+str(count))
+def fillTo(svc,count):
+	print("fill "+svc.appID+" to "+str(count))
+	update={}
+	update["id"]=svc.appID
+	update["instances"]=count
+	httpCheck(requests.patch,apiURI+svc.appID,json.dumps(update))
+	waitTillScaled(svc,count)
 
 def batchRun(runs):
 	print("batch run")
@@ -71,6 +87,7 @@ def batchList(runs):
 def deployService(svc):
 	print("deploying",svc)
 	httpCheck(requests.post,apiURI,svc.manifest)
+	waitTillScaled(svc,1)
 
 def destroyService(svc):
 	print("destroying",svc)
