@@ -103,8 +103,6 @@ def batchRun(runs,rawFD,avgFD):
 		timeStop[0]=time.time()
 		con.close()
 
-
-
 	def startNcBack():
 		try:
 			destroyService(ncBack)
@@ -127,13 +125,10 @@ def batchRun(runs,rawFD,avgFD):
 		if socListThread.isAlive():
 			socListThread.join()
 		diff=timeStop[0]-timeStart[0]
-		print("start "+str(timeStart[0]))
-		print("stop "+str(timeStop[0]))
-		print(str(diff))
 		total+=diff
-		rawFD.write(str(diff)+"\n")
-	
-	avgFD.write(str(total/runs))
+		raw+=str(diff)+"\n"
+	rawFD.write(raw)
+	avgFD.write(str(total/runs)+"\n")
 	
 
 
