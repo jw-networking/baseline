@@ -51,24 +51,27 @@ def httpCheck(cmd,destination,json=None):
 	response=cmd(destination,data=json)
 	status=response.status_code
 	if status<200 or status>=300:
-		print(response)
-		exit(status)
+		raise LookupError(response)
 	return response
 
 def getScale(svc):
-	resp=httpCheck(requests.get,apiURI+svc.appID)
+	try:
+		resp=httpCheck(requests.get,apiURI+svc.appID)
+	except LookupError as err:
+		raise 
+	
 	return json.loads(resp.text)["app"]["tasksRunning"]
 
 def waitTillScaled(svc,count):
-	scale=None
-	while scale != count:
+	running=None
+	while running != count:
 		try:
-			scale=getscale(svc)
-		except:
-			scale=0
-		print("running = "+str(scale)+" out of "+str(count))
+			running=getScale(svc)
+		except LookupError:
+			running=0
+		print("running = "+str(running)+" out of "+str(count))
 		time.sleep(5)
-		scale=getScale(svc)
+		running=getScale(svc)
 		
 ##
 #main loop
@@ -85,44 +88,51 @@ def batchRun(runs,rawFD,avgFD):
 	raw=""
 	total=0
 	avg=0
-	timeStart=0.0
-	timeStop=0.0
+	timeStart=[None]
+	timeStop=[None]
 
 	def socList():
-		listen=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-		listen.bind((getIP(),ncPort))
-		listen.listen(1)
+		try:
+			listen=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+			listen.bind((getIP(),ncPort))
+			listen.listen(1)
+		except:
+			print("can't open socket")
+			exit(2)
 		con,addr=listen.accept()
+		timeStop[0]=time.time()
 		con.close()
 
 
 
 	def startNcBack():
+		try:
+			destroyService(ncBack)
+			waitTillScaled(ncBack,0)
+		except LookupError:
+			pass
+		timeStart[0]=time.time()
 		deployService(ncBack)
-		waitTillScaled(ncBack,1)
 
 
 	for i in range(runs):
+		print("run "+str(i)+" of "+str(runs))
 		socListThread=Thread(target=socList)
-		startNcBack=Thread(target=startNcBack)
+		startNcBackThread=Thread(target=startNcBack)
 
 		socListThread.start()
 
-		timeStart=time.time()
-		startNcBack.start()
+		startNcBackThread.start()
 
 		if socListThread.isAlive():
 			socListThread.join()
-		timeStop=time.time
-
-		if startNcBack.isAlive():
-			startNcBack.join()
-		destroyService(ncBack)
-		waitTillScaled(ncBack,0)
-	
-		diff=timeStop-timeStart
+		diff=timeStop[0]-timeStart[0]
+		print("start "+str(timeStart[0]))
+		print("stop "+str(timeStop[0]))
+		print(str(diff))
 		total+=diff
-		rawFD.write(diff+"\n")
+		rawFD.write(str(diff)+"\n")
+	
 	avgFD.write(str(total/runs))
 	
 
@@ -145,11 +155,16 @@ def batchList(runs,rawFD,avgFD):
 	avgFD.write(str(total/runs)+"\n")
 
 def deployService(svc):
-	httpCheck(requests.post,apiURI,svc.manifest)
+	try:
+		httpCheck(requests.post,apiURI,svc.manifest)
+	except LookupError:
+		raise
 
 def destroyService(svc):
-	httpCheck(requests.delete,apiURI+svc.appID)
-
+	try:
+		httpCheck(requests.delete,apiURI+svc.appID)
+	except LookupError:
+		raise
 
 ##############################
 #prep
@@ -159,7 +174,7 @@ if(not os.path.isdir(resultsPath)):
 	os.mkdir(resultsPath)
 
 ncBackJSON=json.loads(open(jsonPath+"/ncBack.json").read())
-ncBackJSON["cmd"]='echo ""| nc '+getIP()+" "+str(ncPort)
+ncBackJSON["cmd"]='echo "" | nc '+getIP()+" "+str(ncPort)
 scaleJSON=json.loads(open(jsonPath+"/scale.json").read())
 
 scale=service(json.dumps(scaleJSON))
@@ -190,5 +205,12 @@ for count in containerCounts:
 #cleanup
 ##############################
 
-print("destroying",svc)
-destroyService(scale)
+print("destroying "+scale.appID+" & "+ncBack.appID)
+try:
+	destroyService(scale)
+except LookupError:
+	pass
+try:
+	destroyService(ncBack)
+except LookupError:
+	pass
