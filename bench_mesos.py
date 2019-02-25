@@ -69,7 +69,6 @@ def waitTillScaled(svc,count):
 			running=getScale(svc)
 		except LookupError:
 			running=0
-		print("running = "+str(running)+" out of "+str(count))
 		time.sleep(5)
 		running=getScale(svc)
 		
