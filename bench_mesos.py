@@ -119,6 +119,12 @@ def batchRun(runs,rawFD,avgFD):
 			startNcBack.join()
 		destroyService(ncBack)
 		waitTillScaled(ncBack,0)
+	
+		diff=timeStop-timeStart
+		total+=diff
+		rawFD.write(diff+"\n")
+	avgFD.write(str(total/runs))
+	
 
 
 
