@@ -63,10 +63,10 @@ def waitTillScaled(svc,count):
 	scale=None
 	while scale != count:
 		try:
-			scale=getscale(svc):
+			scale=getscale(svc)
 		except:
-			count=0
-		print("running =",scale)
+			scale=0
+		print("running = "+str(scale)+" out of "+str(count))
 		time.sleep(5)
 		scale=getScale(svc)
 		
@@ -132,6 +132,8 @@ def batchList(runs,rawFD,avgFD):
 	raw=""
 	total=0
 	avg=0
+	timeStart=0.0
+	timeStop=0.0
 	for i in range(runs):
 		timeStart=time.time()
 		httpCheck(requests.get,apiURI)
@@ -163,7 +165,7 @@ scaleJSON=json.loads(open(jsonPath+"/scale.json").read())
 scale=service(json.dumps(scaleJSON))
 ncBack=service(json.dumps(ncBackJSON))
 
-print("deploying",scale.appID)
+print("deploying", scale.appID)
 deployService(scale)
 waitTillScaled(scale,1)
 
