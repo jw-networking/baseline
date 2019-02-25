@@ -112,7 +112,6 @@ def batchRun(runs,rawFD,avgFD):
 		timeStart[0]=time.time()
 		deployService(ncBack)
 
-
 	for i in range(runs):
 		print("run "+str(i)+" of "+str(runs))
 		socListThread=Thread(target=socList)
