@@ -6,6 +6,7 @@ import os
 import re
 import socket
 import time
+from threading import Thread
 
 ##############################
 #data types
@@ -59,8 +60,12 @@ def getScale(svc):
 	return json.loads(resp.text)["app"]["tasksRunning"]
 
 def waitTillScaled(svc,count):
-	scale=getScale(svc)
+	scale=None
 	while scale != count:
+		try:
+			scale=getscale(svc):
+		except:
+			count=0
 		print("running =",scale)
 		time.sleep(5)
 		scale=getScale(svc)
@@ -76,21 +81,65 @@ def fillTo(svc,count):
 	httpCheck(requests.patch,apiURI+svc.appID,json.dumps(update))
 	waitTillScaled(svc,count)
 
-def batchRun(runs):
-	print("batch run")
-	return "batchrun"
+def batchRun(runs,rawFD,avgFD):
+	raw=""
+	total=0
+	avg=0
+	timeStart=0.0
+	timeStop=0.0
 
-def batchList(runs):
-	print("batch list")
-	return "batchList"
+	def socList():
+		listen=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+		listen.bind((getIP(),ncPort))
+		listen.listen(1)
+		con,addr=listen.accept()
+		con.close()
+
+
+
+	def startNcBack():
+		deployService(ncBack)
+		waitTillScaled(ncBack,1)
+
+
+	for i in range(runs):
+		socListThread=Thread(target=socList)
+		startNcBack=Thread(target=startNcBack)
+
+		socListThread.start()
+
+		timeStart=time.time()
+		startNcBack.start()
+
+		if socListThread.isAlive():
+			socListThread.join()
+		timeStop=time.time
+
+		if startNcBack.isAlive():
+			startNcBack.join()
+		destroyService(ncBack)
+		waitTillScaled(ncBack,0)
+
+
+
+def batchList(runs,rawFD,avgFD):
+	raw=""
+	total=0
+	avg=0
+	for i in range(runs):
+		timeStart=time.time()
+		httpCheck(requests.get,apiURI)
+		timeStop=time.time()
+		diff=timeStop-timeStart
+		total+=diff
+		raw+=str(diff)+"\n"
+	rawFD.write(raw)
+	avgFD.write(str(total/runs)+"\n")
 
 def deployService(svc):
-	print("deploying",svc)
 	httpCheck(requests.post,apiURI,svc.manifest)
-	waitTillScaled(svc,1)
 
 def destroyService(svc):
-	print("destroying",svc)
 	httpCheck(requests.delete,apiURI+svc.appID)
 
 
@@ -108,7 +157,9 @@ scaleJSON=json.loads(open(jsonPath+"/scale.json").read())
 scale=service(json.dumps(scaleJSON))
 ncBack=service(json.dumps(ncBackJSON))
 
+print("deploying",scale.appID)
 deployService(scale)
+waitTillScaled(scale,1)
 
 ##############################
 #main test loop
@@ -118,15 +169,18 @@ for count in containerCounts:
 	fillTo(scale,count)
 
 	print("Starting run test")
-	results=open(resultsPath+"/mesos-run-"+str(count)+".raw","w")
-	results.write(batchRun(iterations))
+	resultsRaw=open(resultsPath+"/mesos-run-"+str(count)+".raw","w")
+	resultsAvg=open(resultsPath+"/mesos-run-"+str(count)+".avg","w")
+	batchRun(iterations,resultsRaw,resultsAvg)
 
 	print("Starting list test")
-	results=open(resultsPath+"/mesos-list-"+str(count)+".raw","w")
-	results.write(batchList(iterations))
+	resultsRaw=open(resultsPath+"/mesos-list-"+str(count)+".raw","w")
+	resultsAvg=open(resultsPath+"/mesos-list-"+str(count)+".avg","w")
+	batchList(iterations,resultsRaw,resultsAvg)
 
 ##############################
 #cleanup
 ##############################
 
+print("destroying",svc)
 destroyService(scale)
