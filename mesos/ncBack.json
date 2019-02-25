@@ -1,5 +1,5 @@
 {
-  "id": "/ncBack",
+  "id": "/ncback",
   "cmd": "echo \"\"| nc host port",
   "cpus": 0.01,
   "mem": 32,
