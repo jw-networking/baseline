@@ -26,8 +26,8 @@ class service:
 ##############################
 resultsPath="./results"
 jsonPath="./mesos"
-containerCounts=[5,10,20]
-iterations=10
+containerCounts=[6,30,54,59,60]
+iterations=20
 apiURI="http://master1.mesos:8080/v2/apps"
 ncPort=4444
 scale=None
