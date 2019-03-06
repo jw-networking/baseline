@@ -1,9 +1,9 @@
 #!/bin/bash
 
 #number of repititions per test
-COUNT=100
-#max number of containers to be tested
-SCALE=500
+COUNT=500
+#nuberof containers to be tested
+SCALE=(6 50 54 59 60)
 RESULTS="./raw"
 TEST_KUBE=0
 TEST_DOCKER=0
@@ -144,6 +144,7 @@ dockerBatchRun() {
       alpine \
       /bin/sh -c "echo '' |nc $TESTER_IP 4444" 2>&1 >/dev/null & \
     wait
+    docker service rm single-$i 2>&1 >/dev/null
   done
 }
 
@@ -181,39 +182,29 @@ test() {
     echo Starting list test
     timedBatch 1 $COUNT "dockerList" > $RESULTS/swarm-list-$1.raw
     echo Cleaning up Exited containers
-    batch "deleteContainer single"
+    #batch "deleteContainer single"
   fi
 }
 
 
-echo Test at 10% 
-test $(scaleToPercent .1)
-
-echo Test at 50% 
-test $(scaleToPercent .5)
-
-echo Test at 90% 
-test $(scaleToPercent .9)
-
-echo Test at 99% 
-test $(scaleToPercent .99)
-
-echo Test at 100% 
-test $SCALE
+for i in ${SCALE[@]};do
+	echo testing $i
+	test $i
+done
 
 #########################
 #generate averages
 #########################
 
 average(){
-  awk '{total+=$1;count++} END {print total/count};' <<< $1
+  cat $1 | awk '{total+=$1;count++} END {print total/count};'
 }
 
 setExtention(){
   echo "${1%.*}"$2
 }
 
-for i in $(ls $RESULTS/) 
+for i in $(ls $RESULTS/ | egrep '^.*\.raw$') 
 do
   filename=$(setExtention $i .avg)
   avg=$(average $RESULTS/$i)
