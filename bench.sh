@@ -3,7 +3,7 @@
 #number of repititions per test
 COUNT=500
 #nuberof containers to be tested
-SCALE=(500)
+SCALE=(6 30 54 59 60 100 200 500)
 RESULTS="./raw"
 TEST_KUBE=0
 TEST_DOCKER=0
