@@ -3,7 +3,7 @@
 #number of repititions per test
 COUNT=500
 #nuberof containers to be tested
-SCALE=(6 50 54 59 60)
+SCALE=(6 30 54 59 60 100 200 500)
 RESULTS="./raw"
 TEST_KUBE=0
 TEST_DOCKER=0
@@ -149,7 +149,12 @@ dockerBatchRun() {
 }
 
 kubeBatchRun() {
-  for i in $(seq 1 1 $COUNT); do { time -p nc -l -p 4444 ; } 2>&1 >/dev/null | sed -n '/real/p' | awk '{ print $2 }' & kubectl  run single-$i --restart Never --image alpine -- sh -c "echo '' | nc $TESTER_IP 4444" 2>&1 >/dev/null & wait ; done
+  for i in $(seq 1 1 $COUNT); do 
+    { time -p nc -l -p 4444 ; } 2>&1 >/dev/null | sed -n '/real/p' | awk '{ print $2 }' & 
+    kubectl  run single-$i --restart Never --image alpine -- sh -c "echo '' | nc $TESTER_IP 4444" 2>&1 >/dev/null & 
+    wait 
+    kubectl delete pod single-$i 2>&1 > /dev/null
+  done
 }
 
 timedBatch() {
@@ -174,7 +179,7 @@ test() {
     echo Starting list test
     timedBatch 1 $COUNT "kubeList" > $RESULTS/kube-list-$1.raw
     echo Clearning up Exited containers
-    batch "deletePod"
+    #batch "deletePod"
   else
     fillDockerTo $1
     echo Starting run test
